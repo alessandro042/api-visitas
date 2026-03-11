@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Panel de recepción — Control de Visitantes CECYTE." />
+  <title>Recepción — Control de Visitantes</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .header-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .header-title span {
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .user-label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .stat {
+      padding: 16px 20px;
+      border-bottom: 2px solid transparent;
+    }
+    .stat.blue  { border-color: var(--blue); }
+    .stat.green { border-color: var(--green); }
+    .stat.gray  { border-color: var(--border-light); }
+    .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .stat-value { font-size: 24px; font-weight: 600; margin-top: 4px; line-height: 1; }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .panel-header h3 { font-size: 13px; font-weight: 600; }
+    .panel-body { padding: 20px; }
+    .panel-form { display: flex; flex-direction: column; gap: 14px; }
+
+    #search-result {
+      display: none;
+      margin-top: 12px;
+      padding: 14px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    #search-result.visible { display: block; }
+    .result-row { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+    .rf-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .rf-value { font-size: 13px; color: var(--text); margin-top: 2px; }
+    .rf-mono  { font-family: ui-monospace, monospace; font-size: 12px; color: var(--text-muted); }
+
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+    }
+    .overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      max-width: 360px;
+      width: calc(100% - 40px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    .modal h3 { font-size: 14px; margin-bottom: 8px; }
+    .modal p  { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+    @media (max-width: 600px) {
+      .stats { grid-template-columns: 1fr 1fr; }
+      .stats .stat:last-child { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <div id="toast-container" role="region" aria-live="polite"></div>
+
+  <header class="header">
+    <div class="header-inner">
+      <span class="header-title">Control de Visitantes <span>— Recepción</span></span>
+      <div class="header-right">
+        <span class="user-label" id="user-label">recepcion_admin</span>
+        <button id="logout-btn" class="btn btn-secondary btn-sm">Salir</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="stats">
+      <div class="card stat blue">
+        <div class="stat-label">Total visitantes</div>
+        <div class="stat-value text-blue" id="stat-total">—</div>
+      </div>
+      <div class="card stat green">
+        <div class="stat-label">Registrados hoy</div>
+        <div class="stat-value" id="stat-today" style="color:var(--green)">—</div>
+      </div>
+      <div class="card stat gray">
+        <div class="stat-label">Dispositivos</div>
+        <div class="stat-value" id="stat-devices" style="color:var(--text-muted)">—</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card">
+          <div class="panel-header">
+            <h3>Registrar visitante</h3>
+          </div>
+          <div class="panel-body">
+            <form id="register-form" class="panel-form" novalidate autocomplete="off">
+              <div class="form-group">
+                <label for="reg-nombre">Nombre completo</label>
+                <input id="reg-nombre" type="text" placeholder="Ej. Juan Pérez García" required maxlength="120" />
+                <span class="field-error" id="reg-nombre-error">Campo obligatorio</span>
+              </div>
+              <div class="form-group">
+                <label for="reg-motivo">Motivo de visita</label>
+                <input id="reg-motivo" type="text" placeholder="Ej. Reunión con TI" required maxlength="200" />
+                <span class="field-error" id="reg-motivo-error">Campo obligatorio</span>
+              </div>
+              <div class="form-group">
+                <label for="reg-mac">Dirección MAC</label>
+                <input
+                  id="reg-mac"
+                  type="text"
+                  placeholder="AA:BB:CC:DD:EE:FF"
+                  required
+                  maxlength="17"
+                  autocomplete="off"
+                />
+                <span class="field-error" id="reg-mac-error">Formato inválido — use XX:XX:XX:XX:XX:XX</span>
+                <span class="field-hint">Separador : o -</span>
+              </div>
+              <button id="register-btn" type="submit" class="btn btn-primary btn-full">
+                <span class="btn-text">Registrar</span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="panel-header">
+            <h3>Buscar por ID</h3>
+          </div>
+          <div class="panel-body">
+            <div style="display:flex;gap:8px;">
+              <input id="search-id" type="number" min="1" placeholder="ID del visitante" style="flex:1;" />
+              <button id="search-btn" class="btn btn-secondary btn-sm">
+                <span class="btn-text">Buscar</span>
+              </button>
+            </div>
+
+            <div id="search-result" class="fade-in" role="region" aria-live="polite">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span class="badge badge-blue">Visitante #<span id="sr-id"></span></span>
+                <span class="text-subtle" id="sr-fecha"></span>
+              </div>
+              <div class="result-row">
+                <div class="result-field">
+                  <div class="rf-label">Nombre</div>
+                  <div class="rf-value" id="sr-nombre"></div>
+                </div>
+                <div class="result-field">
+                  <div class="rf-label">Motivo</div>
+                  <div class="rf-value" id="sr-motivo"></div>
+                </div>
+              </div>
+              <div style="margin-top:10px;">
+                <div class="rf-label">MAC Address</div>
+                <div class="rf-value rf-mono" id="sr-mac"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="overflow:hidden;">
+        <div class="panel-header">
+          <h3>Visitantes registrados</h3>
+          <button id="refresh-btn" class="btn btn-secondary btn-sm">Actualizar</button>
+        </div>
+        <div class="table-wrap">
+          <table aria-label="Lista de visitantes">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Motivo</th>
+                <th>MAC Address</th>
+                <th>Fecha</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              <tr>
+                <td colspan="6">
+                  <div class="empty-state">Cargando...</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="delete-overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+      <h3 id="modal-title">Eliminar registro</h3>
+      <p id="modal-msg">¿Deseas eliminar este visitante? Esta acción no se puede deshacer.</p>
+      <div class="modal-actions">
+        <button id="modal-cancel" class="btn btn-secondary">Cancelar</button>
+        <button id="modal-confirm" class="btn btn-danger" style="padding:7px 16px;font-size:13px;">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    if (!localStorage.getItem('jwt_token')) window.location.replace('/');
+
+    function esc(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    function formatDate(iso) {
+      if (!iso) return '—';
+      return new Date(iso).toLocaleString('es-MX', {
+        day:'2-digit', month:'short', year:'numeric',
+        hour:'2-digit', minute:'2-digit'
+      });
+    }
+
+    function isToday(iso) {
+      const d = new Date(iso), n = new Date();
+      return d.toDateString() === n.toDateString();
+    }
+
+    function updateStats(list) {
+      document.getElementById('stat-total').textContent   = list.length;
+      document.getElementById('stat-today').textContent   = list.filter(v => isToday(v.fechaRegistro)).length;
+      document.getElementById('stat-devices').textContent = list.length;
+    }
+
+    let pendingId = null;
+
+    function renderTable(list) {
+      const tbody = document.getElementById('table-body');
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Sin visitantes registrados.</div></td></tr>';
+        return;
+      }
+      tbody.innerHTML = list
+        .slice().sort((a, b) => b.id - a.id)
+        .map(v => `
+          <tr>
+            <td><span class="badge badge-blue">${v.id}</span></td>
+            <td>${esc(v.nombreCompleto)}</td>
+            <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(v.motivoVisita)}">${esc(v.motivoVisita)}</td>
+            <td class="td-mono">${esc(v.macAddress)}</td>
+            <td class="text-subtle">${formatDate(v.fechaRegistro)}</td>
+            <td>
+              <button class="btn btn-danger" onclick="openModal(${v.id}, '${esc(v.nombreCompleto)}')" aria-label="Eliminar">
+                Eliminar
+              </button>
+            </td>
+          </tr>`)
+        .join('');
+    }
+
+    async function loadVisitantes() {
+      try {
+        const list = await Api.listarVisitantes();
+        renderTable(list);
+        updateStats(list);
+      } catch (err) {
+        if (err.status === 401) logout();
+        else showToast('Error cargando visitantes', 'error');
+      }
+    }
+
+    const MAC_RE = /^([0-9A-Fa-f]{2}[:\-]){5}([0-9A-Fa-f]{2})$/;
+
+    ['reg-nombre','reg-motivo','reg-mac'].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener('input', () => {
+        el.classList.remove('error');
+        document.getElementById(id + '-error').classList.remove('visible');
+      });
+    });
+
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nombre = document.getElementById('reg-nombre');
+      const motivo = document.getElementById('reg-motivo');
+      const mac    = document.getElementById('reg-mac');
+      let ok = true;
+
+      if (!nombre.value.trim()) { nombre.classList.add('error'); document.getElementById('reg-nombre-error').classList.add('visible'); ok = false; }
+      if (!motivo.value.trim()) { motivo.classList.add('error'); document.getElementById('reg-motivo-error').classList.add('visible'); ok = false; }
+      if (!MAC_RE.test(mac.value.trim())) { mac.classList.add('error'); document.getElementById('reg-mac-error').classList.add('visible'); ok = false; }
+      if (!ok) return;
+
+      const btn = document.getElementById('register-btn');
+      btn.disabled = true;
+      btn.querySelector('.btn-text').textContent = 'Guardando...';
+
+      try {
+        await Api.registrarVisitante({
+          nombreCompleto: nombre.value.trim(),
+          motivoVisita:   motivo.value.trim(),
+          macAddress:     mac.value.trim().toUpperCase()
+        });
+        showToast('Visitante registrado', 'success');
+        e.target.reset();
+        await loadVisitantes();
+      } catch (err) {
+        if (err.status === 401) { logout(); return; }
+        if (err.status === 400 && err.body?.detalle) {
+          const msg = Object.values(err.body.detalle).join(', ');
+          showToast('Error: ' + msg, 'error');
+        } else {
+          showToast('Error al registrar', 'error');
+        }
+      } finally {
+        btn.disabled = false;
+        btn.querySelector('.btn-text').textContent = 'Registrar';
+      }
+    });
+
+    async function doSearch() {
+      const id = document.getElementById('search-id').value.trim();
+      if (!id || isNaN(id) || Number(id) < 1) { showToast('Ingresa un ID válido', 'info'); return; }
+
+      const btn = document.getElementById('search-btn');
+      btn.disabled = true;
+      btn.querySelector('.btn-text').textContent = '...';
+
+      try {
+        const v = await Api.buscarPorId(Number(id));
+        document.getElementById('sr-id').textContent     = v.id;
+        document.getElementById('sr-nombre').textContent = v.nombreCompleto;
+        document.getElementById('sr-motivo').textContent = v.motivoVisita;
+        document.getElementById('sr-mac').textContent    = v.macAddress;
+        document.getElementById('sr-fecha').textContent  = formatDate(v.fechaRegistro);
+        document.getElementById('search-result').classList.add('visible');
+      } catch (err) {
+        document.getElementById('search-result').classList.remove('visible');
+        if (err.status === 401) logout();
+        else if (err.status === 404) showToast('ID ' + id + ' no encontrado', 'info');
+        else showToast('Error al buscar', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.querySelector('.btn-text').textContent = 'Buscar';
+      }
+    }
+
+    document.getElementById('search-btn').addEventListener('click', doSearch);
+    document.getElementById('search-id').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+    const overlay = document.getElementById('delete-overlay');
+
+    window.openModal = function(id, nombre) {
+      pendingId = id;
+      document.getElementById('modal-msg').textContent =
+        `¿Eliminar el registro de "${nombre}" (ID ${id})? Esta acción no se puede deshacer.`;
+      overlay.classList.add('open');
+      document.getElementById('modal-confirm').focus();
+    };
+
+    document.getElementById('modal-cancel').onclick = () => { overlay.classList.remove('open'); pendingId = null; };
+    overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('open'); pendingId = null; } });
+
+    document.getElementById('modal-confirm').addEventListener('click', async () => {
+      if (!pendingId) return;
+      const id = pendingId;
+      overlay.classList.remove('open');
+      try {
+        await Api.eliminarVisitante(id);
+        showToast('Visitante #' + id + ' eliminado', 'success');
+        if (document.getElementById('sr-id').textContent == id)
+          document.getElementById('search-result').classList.remove('visible');
+        await loadVisitantes();
+      } catch (err) {
+        if (err.status === 401) logout();
+        else showToast('Error al eliminar', 'error');
+      } finally { pendingId = null; }
+    });
+
+    function logout() {
+      localStorage.removeItem('jwt_token');
+      window.location.replace('/');
+    }
+    document.getElementById('logout-btn').addEventListener('click', logout);
+
+    document.getElementById('refresh-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('refresh-btn');
+      btn.disabled = true;
+      await loadVisitantes();
+      btn.disabled = false;
+      showToast('Tabla actualizada', 'info');
+    });
+
+    loadVisitantes();
+  </script>
+</body>
+</html>
