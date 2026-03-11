@@ -147,4 +147,22 @@ Al iniciar la aplicación, `DataLoader` crea automáticamente un usuario si la b
 
 ## Propuesta VLAN
 
-El archivo [`VLAN_PROPUESTA_TECNICA.md`](./VLAN_PROPUESTA_TECNICA.md) describe la segmentación de red recomendada para aislar el tráfico de visitantes de la red administrativa, incluyendo configuración de VLANs, ACLs e integración de MAC address con el controlador del punto de acceso.
+Propuesta Técnica: Red para Visitantes
+1. Segmentación Lógica (VLANs)
+Para separar el tráfico físico en redes virtuales independientes, se proponen dos VLANs principales:
+•	VLAN 10 (Administrativa): Red privada para los empleados del CECyTE, computadoras de recepción.
+•	VLAN 20 (Visitantes): Red aislada. Aquí se conectarán los celulares o laptops de los invitados a través de una red WiFi específica para ellos (ej. SSID: CECyTE-Invitados).
+2. MAC Filtering
+Capturar la MAC Address en el sistema es nuestra llave de acceso a la red.
+Se propone usar Filtrado MAC (MAC Filtering) en el Access Point (WiFi) o Router de los visitantes. El cual funcionaría como una white list:
+1.	El visitante se conecta al WiFi de invitados.
+2.	El dispositivo no tiene internet por defecto.
+3.	El recepcionista registra la MAC.
+4.	El administrador de red permite esa MAC en el router.
+5.	Solo las MACs registradas en la base de datos pueden navegar. Dispositivos no registrados son bloqueados automáticamente en la capa de red.
+3. Reglas de Aislamiento 
+Para asegurar que un visitante con conocimientos técnicos no intente acceder a los servidores de la escuela, se configuran las siguientes reglas básicas en el Firewall o Router principal:
+•	PERMITIR: Tráfico desde la VLAN 20 (Visitantes) exclusivamente hacia Internet.
+•	DENEGAR: Cualquier intento de conexión desde la VLAN 20 (Visitantes) hacia la VLAN 10 (Administrativa).
+•	DENEGAR: Acceso a Internet a cualquier MAC Address de la VLAN 20 que no esté en la base de datos de recepción.
+
