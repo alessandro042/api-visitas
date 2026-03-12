@@ -36,10 +36,13 @@ public class AuthController {
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
             UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
-            String jwt = jwtUtil.generateToken(userDetails.getUsername());
+            String rol = userDetails.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
+            String jwt = jwtUtil.generateToken(userDetails.getUsername(), rol);
 
             return ResponseEntity.ok(Map.of(
                     "token", jwt,
+                    "username", userDetails.getUsername(),
+                    "rol", rol,
                     "mensaje", "Autenticación exitosa"));
 
         } catch (BadCredentialsException e) {

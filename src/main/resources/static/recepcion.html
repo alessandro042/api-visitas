@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Panel de recepción — Control de Visitantes CECYTE." />
   <title>Recepción — Control de Visitantes</title>
   <link rel="stylesheet" href="/style.css" />
   <style>
@@ -14,6 +14,7 @@
       background: var(--surface);
       border-bottom: 1px solid var(--border);
     }
+
     .header-inner {
       max-width: 1200px;
       margin: 0 auto;
@@ -24,22 +25,48 @@
       justify-content: space-between;
       gap: 16px;
     }
+
     .header-title {
       font-size: 14px;
       font-weight: 600;
       color: var(--text);
     }
+
     .header-title span {
       color: var(--text-muted);
       font-weight: 400;
     }
+
     .header-right {
       display: flex;
       align-items: center;
       gap: 12px;
     }
+
     .user-label {
       font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .role-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .role-ADMIN {
+      background: rgba(56, 139, 253, .15);
+      color: var(--blue-hover);
+    }
+
+    .role-RECEPCIONISTA {
+      background: rgba(63, 185, 80, .12);
+      color: var(--green);
+    }
+
+    .role-VIGILANTE {
+      background: rgba(139, 148, 158, .12);
       color: var(--text-muted);
     }
 
@@ -54,18 +81,51 @@
 
     .stats {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 12px;
     }
+
     .stat {
       padding: 16px 20px;
       border-bottom: 2px solid transparent;
     }
-    .stat.blue  { border-color: var(--blue); }
-    .stat.green { border-color: var(--green); }
-    .stat.gray  { border-color: var(--border-light); }
-    .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
-    .stat-value { font-size: 24px; font-weight: 600; margin-top: 4px; line-height: 1; }
+
+    .stat.blue   { border-color: var(--blue); }
+    .stat.green  { border-color: var(--green); }
+    .stat.yellow { border-color: #d29922; }
+    .stat.gray   { border-color: var(--border-light); }
+
+    .edit-banner {
+      display: none; padding: 8px 12px; margin-bottom: 14px;
+      background: rgba(56,139,253,.1); border: 1px solid rgba(56,139,253,.25);
+      border-radius: var(--radius); font-size: 12px; color: var(--blue-hover);
+    }
+    .edit-banner.visible { display: block; }
+
+    .status-dentro  { color: var(--green); font-size: 12px; font-weight: 500; }
+    .status-salio   { color: var(--text-subtle); font-size: 12px; }
+    .btn-checkout {
+      display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px;
+      font-size: 12px; font-weight: 500; cursor: pointer;
+      background: rgba(63,185,80,.1); color: var(--green);
+      border: 1px solid rgba(63,185,80,.3); border-radius: var(--radius);
+      transition: background 0.15s;
+    }
+    .btn-checkout:hover { background: rgba(63,185,80,.2); }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 600;
+      margin-top: 4px;
+      line-height: 1;
+    }
 
     .two-col {
       display: grid;
@@ -81,9 +141,21 @@
       align-items: center;
       justify-content: space-between;
     }
-    .panel-header h3 { font-size: 13px; font-weight: 600; }
-    .panel-body { padding: 20px; }
-    .panel-form { display: flex; flex-direction: column; gap: 14px; }
+
+    .panel-header h3 {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .panel-body {
+      padding: 20px;
+    }
+
+    .panel-form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
 
     #search-result {
       display: none;
@@ -93,14 +165,153 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
     }
-    #search-result.visible { display: block; }
-    .result-row { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
-    .rf-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
-    .rf-value { font-size: 13px; color: var(--text); margin-top: 2px; }
-    .rf-mono  { font-family: ui-monospace, monospace; font-size: 12px; color: var(--text-muted); }
+
+    #search-result.visible {
+      display: block;
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .rf-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .rf-value {
+      font-size: 13px;
+      color: var(--text);
+      margin-top: 2px;
+    }
+
+    .rf-mono {
+      font-family: ui-monospace, monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .mac-help-toggle {
+      background: none;
+      border: none;
+      color: var(--blue);
+      font-size: 12px;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      margin-top: 2px;
+      display: block;
+    }
+
+    .mac-help-toggle:hover {
+      color: var(--blue-hover);
+    }
+
+    .mac-help {
+      display: none;
+      margin-top: 10px;
+      padding: 14px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .mac-help.open {
+      display: block;
+    }
+
+    .mac-help-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .mac-os-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .mac-tab {
+      padding: 4px 10px;
+      border-radius: var(--radius);
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .mac-tab.active {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    .mac-panel {
+      display: none;
+    }
+
+    .mac-panel.active {
+      display: block;
+    }
+
+    .mac-steps {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .mac-steps li {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 8px;
+    }
+
+    .mac-steps li::before {
+      content: attr(data-n);
+      min-width: 18px;
+      height: 18px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--text-subtle);
+      flex-shrink: 0;
+    }
+
+    .mac-cmd {
+      display: inline-block;
+      padding: 2px 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      color: var(--text);
+      margin-top: 4px;
+    }
 
     .overlay {
-      position: fixed; inset: 0;
+      position: fixed;
+      inset: 0;
       background: rgba(0, 0, 0, 0.6);
       z-index: 500;
       display: flex;
@@ -110,7 +321,11 @@
       pointer-events: none;
       transition: opacity 0.15s;
     }
-    .overlay.open { opacity: 1; pointer-events: all; }
+
+    .overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
 
     .modal {
       background: var(--surface);
@@ -119,18 +334,35 @@
       padding: 24px;
       max-width: 360px;
       width: calc(100% - 40px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
     }
-    .modal h3 { font-size: 14px; margin-bottom: 8px; }
-    .modal p  { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
-    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
 
+    .modal h3 {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .modal p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
     @media (max-width: 600px) {
       .stats { grid-template-columns: 1fr 1fr; }
       .stats .stat:last-child { grid-column: 1 / -1; }
     }
   </style>
 </head>
+
 <body>
   <div id="toast-container" role="region" aria-live="polite"></div>
 
@@ -138,7 +370,9 @@
     <div class="header-inner">
       <span class="header-title">Control de Visitantes <span>— Recepción</span></span>
       <div class="header-right">
-        <span class="user-label" id="user-label">recepcion_admin</span>
+        <span class="role-badge" id="role-badge"></span>
+        <span class="user-label" id="user-label"></span>
+        <a id="admin-link" href="/admin.html" class="btn btn-secondary btn-sm hidden">Panel de administrador</a>
         <button id="logout-btn" class="btn btn-secondary btn-sm">Salir</button>
       </div>
     </div>
@@ -147,27 +381,35 @@
   <main class="main">
     <div class="stats">
       <div class="card stat blue">
-        <div class="stat-label">Total visitantes</div>
+        <div class="stat-label">Total registrados</div>
         <div class="stat-value text-blue" id="stat-total">—</div>
       </div>
       <div class="card stat green">
-        <div class="stat-label">Registrados hoy</div>
-        <div class="stat-value" id="stat-today" style="color:var(--green)">—</div>
+        <div class="stat-label">Dentro ahora</div>
+        <div class="stat-value" id="stat-inside" style="color:var(--green)">—</div>
+      </div>
+      <div class="card stat yellow">
+        <div class="stat-label">Hoy</div>
+        <div class="stat-value" id="stat-today" style="color:#d29922">—</div>
       </div>
       <div class="card stat gray">
-        <div class="stat-label">Dispositivos</div>
-        <div class="stat-value" id="stat-devices" style="color:var(--text-muted)">—</div>
+        <div class="stat-label">Con salida</div>
+        <div class="stat-value" id="stat-out" style="color:var(--text-muted)">—</div>
       </div>
     </div>
 
     <div class="two-col">
       <div style="display:flex;flex-direction:column;gap:16px;">
-        <div class="card">
+
+        <div class="card" id="form-card">
           <div class="panel-header">
-            <h3>Registrar visitante</h3>
+            <h3 id="form-title">Registrar visitante</h3>
+            <button type="button" id="form-cancel-btn" class="btn btn-secondary btn-sm hidden">Cancelar</button>
           </div>
           <div class="panel-body">
+            <div class="edit-banner" id="edit-banner">Modo edición — modifica los campos y guarda</div>
             <form id="register-form" class="panel-form" novalidate autocomplete="off">
+              <input type="hidden" id="edit-id" value="" />
               <div class="form-group">
                 <label for="reg-nombre">Nombre completo</label>
                 <input id="reg-nombre" type="text" placeholder="Ej. Juan Pérez García" required maxlength="120" />
@@ -180,19 +422,74 @@
               </div>
               <div class="form-group">
                 <label for="reg-mac">Dirección MAC</label>
-                <input
-                  id="reg-mac"
-                  type="text"
-                  placeholder="AA:BB:CC:DD:EE:FF"
-                  required
-                  maxlength="17"
-                  autocomplete="off"
-                />
+                <input id="reg-mac" type="text" placeholder="AA:BB:CC:DD:EE:FF" required maxlength="17"
+                  autocomplete="off" />
                 <span class="field-error" id="reg-mac-error">Formato inválido — use XX:XX:XX:XX:XX:XX</span>
                 <span class="field-hint">Separador : o -</span>
+                <button type="button" class="mac-help-toggle" id="mac-help-btn">¿Cómo encontrar la dirección
+                  MAC?</button>
+
+                <div class="mac-help" id="mac-help">
+                  <div class="mac-help-title">Instrucciones por dispositivo</div>
+                  <div class="mac-os-tabs">
+                    <button type="button" class="mac-tab active" data-os="windows">Windows</button>
+                    <button type="button" class="mac-tab" data-os="android">Android</button>
+                    <button type="button" class="mac-tab" data-os="ios">iPhone / iPad</button>
+                    <button type="button" class="mac-tab" data-os="macos">Mac</button>
+                  </div>
+
+                  <div class="mac-panel active" id="os-windows">
+                    <ul class="mac-steps">
+                      <li data-n="1">Pedir al visitante que abra el menú Inicio y escriba <span
+                          class="mac-cmd">cmd</span></li>
+                      <li data-n="2">En la ventana negra, escribir: <span class="mac-cmd">ipconfig /all</span> y
+                        presionar Enter</li>
+                      <li data-n="3">Buscar la sección <strong>Adaptador de LAN inalámbrica Wi-Fi</strong></li>
+                      <li data-n="4">La línea <strong>Dirección física</strong> muestra la MAC — formato <span
+                          class="mac-cmd">AA-BB-CC-DD-EE-FF</span></li>
+                    </ul>
+                    <p style="margin-top:10px;font-size:11px;color:var(--text-subtle)">Alternativa rápida: Configuración
+                      → Red e Internet → Wi-Fi → Propiedades de hardware</p>
+                  </div>
+
+                  <div class="mac-panel" id="os-android">
+                    <ul class="mac-steps">
+                      <li data-n="1">Ir a <strong>Ajustes</strong> (ícono de engranaje)</li>
+                      <li data-n="2">Tocar <strong>Acerca del teléfono</strong> o <strong>Información del
+                          dispositivo</strong></li>
+                      <li data-n="3">Tocar <strong>Estado</strong> o <strong>Información de Wi-Fi</strong></li>
+                      <li data-n="4">Copiar el valor <strong>Dirección MAC de Wi-Fi</strong></li>
+                    </ul>
+                    <p style="margin-top:10px;font-size:11px;color:var(--text-subtle)">En Android 10+ la MAC puede ser
+                      aleatoria. Buscar "MAC del dispositivo" en Ajustes de Wi-Fi avanzado.</p>
+                  </div>
+
+                  <div class="mac-panel" id="os-ios">
+                    <ul class="mac-steps">
+                      <li data-n="1">Abrir <strong>Ajustes</strong></li>
+                      <li data-n="2">Ir a <strong>General → Información</strong></li>
+                      <li data-n="3">Buscar el campo <strong>Dirección Wi-Fi</strong></li>
+                      <li data-n="4">Ese valor es la dirección MAC del dispositivo</li>
+                    </ul>
+                    <p style="margin-top:10px;font-size:11px;color:var(--text-subtle)">Si "Dirección Wi-Fi privada" está
+                      activa en iOS 14+, desactivarla primero en Ajustes → Wi-Fi → (red) → Dirección Wi-Fi privada.</p>
+                  </div>
+
+                  <div class="mac-panel" id="os-macos">
+                    <ul class="mac-steps">
+                      <li data-n="1">Abrir <strong>Preferencias del Sistema</strong> (ícono manzana)</li>
+                      <li data-n="2">Ir a <strong>Red</strong> y seleccionar <strong>Wi-Fi</strong></li>
+                      <li data-n="3">Hacer clic en <strong>Avanzado…</strong></li>
+                      <li data-n="4">En la pestaña <strong>Wi-Fi</strong>, ver el campo <strong>Dirección</strong> al
+                        fondo</li>
+                    </ul>
+                    <p style="margin-top:10px;font-size:11px;color:var(--text-subtle)">También desde Terminal: <span
+                        class="mac-cmd">ifconfig en0 | grep ether</span></p>
+                  </div>
+                </div>
               </div>
               <button id="register-btn" type="submit" class="btn btn-primary btn-full">
-                <span class="btn-text">Registrar</span>
+                <span class="btn-text">Registrar visitante</span>
               </button>
             </form>
           </div>
@@ -205,22 +502,19 @@
           <div class="panel-body">
             <div style="display:flex;gap:8px;">
               <input id="search-id" type="number" min="1" placeholder="ID del visitante" style="flex:1;" />
-              <button id="search-btn" class="btn btn-secondary btn-sm">
-                <span class="btn-text">Buscar</span>
-              </button>
+              <button id="search-btn" class="btn btn-secondary btn-sm"><span class="btn-text">Buscar</span></button>
             </div>
-
             <div id="search-result" class="fade-in" role="region" aria-live="polite">
               <div style="display:flex;justify-content:space-between;align-items:center;">
                 <span class="badge badge-blue">Visitante #<span id="sr-id"></span></span>
                 <span class="text-subtle" id="sr-fecha"></span>
               </div>
               <div class="result-row">
-                <div class="result-field">
+                <div>
                   <div class="rf-label">Nombre</div>
                   <div class="rf-value" id="sr-nombre"></div>
                 </div>
-                <div class="result-field">
+                <div>
                   <div class="rf-label">Motivo</div>
                   <div class="rf-value" id="sr-motivo"></div>
                 </div>
@@ -243,20 +537,11 @@
           <table aria-label="Lista de visitantes">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Motivo</th>
-                <th>MAC Address</th>
-                <th>Fecha</th>
-                <th></th>
+                <th>ID</th><th>Nombre</th><th>Motivo</th><th>MAC</th><th>Entrada</th><th>Estado</th><th></th>
               </tr>
             </thead>
             <tbody id="table-body">
-              <tr>
-                <td colspan="6">
-                  <div class="empty-state">Cargando...</div>
-                </td>
-              </tr>
+              <tr><td colspan="7"><div class="empty-state">Cargando...</div></td></tr>
             </tbody>
           </table>
         </div>
@@ -266,7 +551,7 @@
 
   <div id="delete-overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal">
-      <h3 id="modal-title">Eliminar registro</h3>
+      <h3 id="modal-title">Eliminar visitante</h3>
       <p id="modal-msg">¿Deseas eliminar este visitante? Esta acción no se puede deshacer.</p>
       <div class="modal-actions">
         <button id="modal-cancel" class="btn btn-secondary">Cancelar</button>
@@ -275,60 +560,84 @@
     </div>
   </div>
 
+  <div id="salida-overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="salida-title">
+    <div class="modal">
+      <h3 id="salida-title">Registrar salida</h3>
+      <p id="salida-msg">¿Confirmar la salida de este visitante?</p>
+      <div class="modal-actions">
+        <button id="salida-cancel" class="btn btn-secondary">Cancelar</button>
+        <button id="salida-confirm" class="btn" style="padding:7px 16px;font-size:13px;background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.35);">Confirmar salida</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/app.js"></script>
   <script>
     if (!localStorage.getItem('jwt_token')) window.location.replace('/');
 
+    const rol = getRole();
+    document.getElementById('user-label').textContent = getUsername();
+    const rolBadge = document.getElementById('role-badge');
+    rolBadge.textContent = rol;
+    rolBadge.className = 'role-badge role-' + rol;
+    if (rol === 'ADMIN') document.getElementById('admin-link').classList.remove('hidden');
+
     function esc(str) {
       if (!str) return '';
       return String(str)
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
-
     function formatDate(iso) {
       if (!iso) return '—';
-      return new Date(iso).toLocaleString('es-MX', {
-        day:'2-digit', month:'short', year:'numeric',
-        hour:'2-digit', minute:'2-digit'
-      });
+      return new Date(iso).toLocaleString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
-
-    function isToday(iso) {
-      const d = new Date(iso), n = new Date();
-      return d.toDateString() === n.toDateString();
-    }
+    function isToday(iso) { const d = new Date(iso), n = new Date(); return d.toDateString() === n.toDateString(); }
 
     function updateStats(list) {
-      document.getElementById('stat-total').textContent   = list.length;
-      document.getElementById('stat-today').textContent   = list.filter(v => isToday(v.fechaRegistro)).length;
-      document.getElementById('stat-devices').textContent = list.length;
+      document.getElementById('stat-total').textContent  = list.length;
+      document.getElementById('stat-inside').textContent = list.filter(v => !v.fechaSalida).length;
+      document.getElementById('stat-today').textContent  = list.filter(v => isToday(v.fechaRegistro)).length;
+      document.getElementById('stat-out').textContent    = list.filter(v =>  v.fechaSalida).length;
     }
 
-    let pendingId = null;
+    let pendingId    = null;
+    let editingId    = null;
+    let pendingSalidaId     = null;
+    let pendingSalidaNombre = null;
+
+    function fmtShort(iso) {
+      if (!iso) return null;
+      return new Date(iso).toLocaleString('es-MX', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+    }
 
     function renderTable(list) {
       const tbody = document.getElementById('table-body');
       if (!list.length) {
-        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Sin visitantes registrados.</div></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">Sin visitantes registrados.</div></td></tr>';
         return;
       }
-      tbody.innerHTML = list
-        .slice().sort((a, b) => b.id - a.id)
-        .map(v => `
-          <tr>
-            <td><span class="badge badge-blue">${v.id}</span></td>
-            <td>${esc(v.nombreCompleto)}</td>
-            <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(v.motivoVisita)}">${esc(v.motivoVisita)}</td>
-            <td class="td-mono">${esc(v.macAddress)}</td>
-            <td class="text-subtle">${formatDate(v.fechaRegistro)}</td>
-            <td>
-              <button class="btn btn-danger" onclick="openModal(${v.id}, '${esc(v.nombreCompleto)}')" aria-label="Eliminar">
-                Eliminar
-              </button>
-            </td>
-          </tr>`)
-        .join('');
+      tbody.innerHTML = list.slice().sort((a, b) => b.id - a.id).map(v => {
+        const estado = v.fechaSalida
+          ? `<span class="status-salio">${fmtShort(v.fechaSalida)}</span>`
+          : `<span class="status-dentro">Dentro</span>`;
+        const btnSalida = !v.fechaSalida
+          ? `<button class="btn-checkout" onclick="openSalidaModal(${v.id},'${esc(v.nombreCompleto)}')">&#10003; Salida</button>`
+          : '';
+        return `<tr>
+          <td><span class="badge badge-blue">${v.id}</span></td>
+          <td>${esc(v.nombreCompleto)}</td>
+          <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(v.motivoVisita)}">${esc(v.motivoVisita)}</td>
+          <td class="td-mono">${esc(v.macAddress)}</td>
+          <td class="text-subtle">${formatDate(v.fechaRegistro)}</td>
+          <td>${estado}</td>
+          <td style="display:flex;gap:6px;flex-wrap:wrap;">
+            ${btnSalida}
+            <button class="btn btn-secondary btn-sm" onclick="startEdit(${v.id},'${esc(v.nombreCompleto)}','${esc(v.motivoVisita)}','${esc(v.macAddress)}')">Editar</button>
+            <button class="btn btn-danger" onclick="openModal(${v.id},'${esc(v.nombreCompleto)}')" aria-label="Eliminar">Eliminar</button>
+          </td>
+        </tr>`;
+      }).join('');
     }
 
     async function loadVisitantes() {
@@ -344,7 +653,7 @@
 
     const MAC_RE = /^([0-9A-Fa-f]{2}[:\-]){5}([0-9A-Fa-f]{2})$/;
 
-    ['reg-nombre','reg-motivo','reg-mac'].forEach(id => {
+    ['reg-nombre', 'reg-motivo', 'reg-mac'].forEach(id => {
       const el = document.getElementById(id);
       el.addEventListener('input', () => {
         el.classList.remove('error');
@@ -352,13 +661,41 @@
       });
     });
 
+    window.startEdit = function(id, nombre, motivo, mac) {
+      editingId = id;
+      document.getElementById('edit-id').value = id;
+      document.getElementById('reg-nombre').value = nombre;
+      document.getElementById('reg-motivo').value = motivo;
+      document.getElementById('reg-mac').value = mac;
+      document.getElementById('form-title').textContent = 'Editar visitante #' + id;
+      document.getElementById('register-btn').querySelector('.btn-text').textContent = 'Guardar cambios';
+      document.getElementById('form-cancel-btn').classList.remove('hidden');
+      document.getElementById('edit-banner').classList.add('visible');
+      document.getElementById('mac-help').classList.remove('open');
+      document.getElementById('form-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    document.getElementById('form-cancel-btn').addEventListener('click', cancelEdit);
+    function cancelEdit() {
+      editingId = null;
+      document.getElementById('register-form').reset();
+      document.getElementById('edit-id').value = '';
+      document.getElementById('form-title').textContent = 'Registrar visitante';
+      document.getElementById('register-btn').querySelector('.btn-text').textContent = 'Registrar visitante';
+      document.getElementById('form-cancel-btn').classList.add('hidden');
+      document.getElementById('edit-banner').classList.remove('visible');
+      ['reg-nombre','reg-motivo','reg-mac'].forEach(id => {
+        document.getElementById(id).classList.remove('error');
+        document.getElementById(id + '-error').classList.remove('visible');
+      });
+    }
+
     document.getElementById('register-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const nombre = document.getElementById('reg-nombre');
       const motivo = document.getElementById('reg-motivo');
       const mac    = document.getElementById('reg-mac');
       let ok = true;
-
       if (!nombre.value.trim()) { nombre.classList.add('error'); document.getElementById('reg-nombre-error').classList.add('visible'); ok = false; }
       if (!motivo.value.trim()) { motivo.classList.add('error'); document.getElementById('reg-motivo-error').classList.add('visible'); ok = false; }
       if (!MAC_RE.test(mac.value.trim())) { mac.classList.add('error'); document.getElementById('reg-mac-error').classList.add('visible'); ok = false; }
@@ -367,45 +704,42 @@
       const btn = document.getElementById('register-btn');
       btn.disabled = true;
       btn.querySelector('.btn-text').textContent = 'Guardando...';
-
+      const payload = { nombreCompleto: nombre.value.trim(), motivoVisita: motivo.value.trim(), macAddress: mac.value.trim().toUpperCase() };
       try {
-        await Api.registrarVisitante({
-          nombreCompleto: nombre.value.trim(),
-          motivoVisita:   motivo.value.trim(),
-          macAddress:     mac.value.trim().toUpperCase()
-        });
-        showToast('Visitante registrado', 'success');
-        e.target.reset();
+        if (editingId) {
+          await Api.actualizarVisitante(editingId, payload);
+          showToast('Visitante actualizado', 'success');
+          cancelEdit();
+        } else {
+          await Api.registrarVisitante(payload);
+          showToast('Visitante registrado', 'success');
+          e.target.reset();
+          document.getElementById('mac-help').classList.remove('open');
+        }
         await loadVisitantes();
       } catch (err) {
         if (err.status === 401) { logout(); return; }
-        if (err.status === 400 && err.body?.detalle) {
-          const msg = Object.values(err.body.detalle).join(', ');
-          showToast('Error: ' + msg, 'error');
-        } else {
-          showToast('Error al registrar', 'error');
-        }
+        if (err.status === 400 && err.body?.detalle) showToast('Error: ' + Object.values(err.body.detalle).join(', '), 'error');
+        else showToast('Error al guardar', 'error');
       } finally {
         btn.disabled = false;
-        btn.querySelector('.btn-text').textContent = 'Registrar';
+        btn.querySelector('.btn-text').textContent = editingId ? 'Guardar cambios' : 'Registrar visitante';
       }
     });
 
     async function doSearch() {
       const id = document.getElementById('search-id').value.trim();
       if (!id || isNaN(id) || Number(id) < 1) { showToast('Ingresa un ID válido', 'info'); return; }
-
       const btn = document.getElementById('search-btn');
       btn.disabled = true;
       btn.querySelector('.btn-text').textContent = '...';
-
       try {
         const v = await Api.buscarPorId(Number(id));
-        document.getElementById('sr-id').textContent     = v.id;
+        document.getElementById('sr-id').textContent = v.id;
         document.getElementById('sr-nombre').textContent = v.nombreCompleto;
         document.getElementById('sr-motivo').textContent = v.motivoVisita;
-        document.getElementById('sr-mac').textContent    = v.macAddress;
-        document.getElementById('sr-fecha').textContent  = formatDate(v.fechaRegistro);
+        document.getElementById('sr-mac').textContent = v.macAddress;
+        document.getElementById('sr-fecha').textContent = formatDate(v.fechaRegistro);
         document.getElementById('search-result').classList.add('visible');
       } catch (err) {
         document.getElementById('search-result').classList.remove('visible');
@@ -422,18 +756,14 @@
     document.getElementById('search-id').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
 
     const overlay = document.getElementById('delete-overlay');
-
-    window.openModal = function(id, nombre) {
+    window.openModal = function (id, nombre) {
       pendingId = id;
-      document.getElementById('modal-msg').textContent =
-        `¿Eliminar el registro de "${nombre}" (ID ${id})? Esta acción no se puede deshacer.`;
+      document.getElementById('modal-msg').textContent = `¿Eliminar el registro de "${nombre}" (ID ${id})? Esta acción no se puede deshacer.`;
       overlay.classList.add('open');
       document.getElementById('modal-confirm').focus();
     };
-
     document.getElementById('modal-cancel').onclick = () => { overlay.classList.remove('open'); pendingId = null; };
     overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('open'); pendingId = null; } });
-
     document.getElementById('modal-confirm').addEventListener('click', async () => {
       if (!pendingId) return;
       const id = pendingId;
@@ -441,8 +771,8 @@
       try {
         await Api.eliminarVisitante(id);
         showToast('Visitante #' + id + ' eliminado', 'success');
-        if (document.getElementById('sr-id').textContent == id)
-          document.getElementById('search-result').classList.remove('visible');
+        if (editingId === id) cancelEdit();
+        if (document.getElementById('sr-id').textContent == id) document.getElementById('search-result').classList.remove('visible');
         await loadVisitantes();
       } catch (err) {
         if (err.status === 401) logout();
@@ -450,12 +780,40 @@
       } finally { pendingId = null; }
     });
 
+    const salidaOverlay = document.getElementById('salida-overlay');
+    window.openSalidaModal = function(id, nombre) {
+      pendingSalidaId     = id;
+      pendingSalidaNombre = nombre;
+      document.getElementById('salida-msg').textContent = `¿Confirmar la salida de "${nombre}" (ID ${id})?`;
+      salidaOverlay.classList.add('open');
+      document.getElementById('salida-confirm').focus();
+    };
+    document.getElementById('salida-cancel').onclick = () => { salidaOverlay.classList.remove('open'); pendingSalidaId = null; };
+    salidaOverlay.addEventListener('click', e => { if (e.target === salidaOverlay) { salidaOverlay.classList.remove('open'); pendingSalidaId = null; } });
+    document.getElementById('salida-confirm').addEventListener('click', async () => {
+      if (!pendingSalidaId) return;
+      const id = pendingSalidaId;
+      const nombre = pendingSalidaNombre;
+      salidaOverlay.classList.remove('open');
+      pendingSalidaId = null; pendingSalidaNombre = null;
+      try {
+        await Api.registrarSalida(id);
+        showToast('Salida de ' + nombre + ' registrada', 'success');
+        await loadVisitantes();
+      } catch (err) {
+        if (err.status === 401) logout();
+        else if (err.status === 409) showToast(err.body?.error || 'Ya tiene salida registrada', 'info');
+        else showToast('Error al registrar salida', 'error');
+      }
+    });
+
     function logout() {
       localStorage.removeItem('jwt_token');
+      localStorage.removeItem('user_rol');
+      localStorage.removeItem('username');
       window.location.replace('/');
     }
     document.getElementById('logout-btn').addEventListener('click', logout);
-
     document.getElementById('refresh-btn').addEventListener('click', async () => {
       const btn = document.getElementById('refresh-btn');
       btn.disabled = true;
@@ -464,7 +822,20 @@
       showToast('Tabla actualizada', 'info');
     });
 
+    document.getElementById('mac-help-btn').addEventListener('click', () => {
+      document.getElementById('mac-help').classList.toggle('open');
+    });
+    document.querySelectorAll('.mac-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.mac-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.mac-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('os-' + tab.dataset.os).classList.add('active');
+      });
+    });
+
     loadVisitantes();
   </script>
 </body>
+
 </html>

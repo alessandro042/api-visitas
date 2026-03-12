@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Acceso al sistema de control de visitantes — CECYTE Oficinas Centrales." />
   <title>Acceso — Control de Visitantes</title>
   <link rel="stylesheet" href="/style.css" />
   <style>
@@ -13,65 +12,21 @@
       min-height: 100vh;
       padding: 24px;
     }
-
-    .login-box {
-      width: 100%;
-      max-width: 380px;
-    }
-
-    .login-header {
-      margin-bottom: 24px;
-    }
-    .login-header h1 {
-      font-size: 20px;
-      color: var(--text);
-    }
-    .login-header p {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-
-    .login-card {
-      padding: 24px;
-    }
-
-    .login-form {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .pass-wrap {
-      position: relative;
-    }
-    .pass-wrap input {
-      padding-right: 40px;
-    }
+    .login-box { width: 100%; max-width: 380px; }
+    .login-header { margin-bottom: 24px; }
+    .login-header h1 { font-size: 20px; color: var(--text); }
+    .login-header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+    .login-card { padding: 24px; }
+    .login-form { display: flex; flex-direction: column; gap: 16px; }
+    .pass-wrap { position: relative; }
+    .pass-wrap input { padding-right: 40px; }
     .toggle-pass {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: var(--text-subtle);
-      cursor: pointer;
-      font-size: 13px;
-      padding: 2px 4px;
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--text-subtle); cursor: pointer; font-size: 13px; padding: 2px 4px;
     }
     .toggle-pass:hover { color: var(--text-muted); }
-
-    .login-footer {
-      margin-top: 16px;
-      text-align: center;
-      font-size: 12px;
-      color: var(--text-subtle);
-    }
-    .login-footer a {
-      color: var(--text-muted);
-      text-decoration: none;
-    }
+    .login-footer { margin-top: 16px; text-align: center; font-size: 12px; color: var(--text-subtle); }
+    .login-footer a { color: var(--text-muted); text-decoration: none; }
     .login-footer a:hover { color: var(--text); }
   </style>
 </head>
@@ -92,32 +47,15 @@
       <form id="login-form" class="login-form" novalidate autocomplete="off">
         <div class="form-group">
           <label for="username">Usuario</label>
-          <input
-            id="username"
-            type="text"
-            placeholder="recepcion_admin"
-            autocomplete="username"
-            required
-          />
+          <input id="username" type="text" placeholder="usuario" autocomplete="username" required />
           <span class="field-error" id="username-error">El usuario es obligatorio</span>
         </div>
 
         <div class="form-group">
           <label for="password">Contraseña</label>
           <div class="pass-wrap">
-            <input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              autocomplete="current-password"
-              required
-            />
-            <button
-              type="button"
-              class="toggle-pass"
-              id="toggle-pass-btn"
-              aria-label="Mostrar/ocultar contraseña"
-            >ver</button>
+            <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" required />
+            <button type="button" class="toggle-pass" id="toggle-pass-btn" aria-label="Mostrar/ocultar contraseña">ver</button>
           </div>
           <span class="field-error" id="password-error">La contraseña es obligatoria</span>
         </div>
@@ -183,6 +121,8 @@
         const data = await Api.login(inputUser.value.trim(), inputPass.value);
         if (data.token) {
           localStorage.setItem('jwt_token', data.token);
+          localStorage.setItem('user_rol', data.rol);
+          localStorage.setItem('username', data.username);
           window.location.replace('/recepcion.html');
         }
       } catch (err) {

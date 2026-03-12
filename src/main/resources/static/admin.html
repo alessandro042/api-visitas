@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Administración — Control de Visitantes</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    body { overflow-x: hidden; }
+
+    .header {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+    }
+    .header-inner {
+      max-width: 100%; margin: 0 auto; padding: 0 24px; height: 52px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .header-title { font-size: 14px; font-weight: 600; color: var(--text); }
+    .header-title span { color: var(--text-muted); font-weight: 400; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .user-label { font-size: 12px; color: var(--text-muted); }
+    .admin-badge {
+      font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600;
+      background: rgba(56,139,253,.15); color: var(--blue-hover); letter-spacing: 0.03em;
+    }
+
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: calc(100vh - 52px);
+    }
+
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 16px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      position: sticky;
+      top: 52px;
+      height: calc(100vh - 52px);
+      overflow-y: auto;
+    }
+    .sidebar-section {
+      font-size: 10px; font-weight: 600; color: var(--text-subtle);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 12px 10px 6px;
+    }
+    .sidebar-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: var(--radius);
+      font-size: 13px; color: var(--text-muted); cursor: pointer;
+      border: none; background: none; width: 100%;
+      text-decoration: none; text-align: left; transition: background 0.1s, color 0.1s;
+    }
+    .sidebar-item:hover { background: var(--surface-2); color: var(--text); }
+    .sidebar-item.active { background: var(--surface-2); color: var(--text); font-weight: 500; }
+    .sidebar-icon {
+      width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .sidebar-divider { height: 1px; background: var(--border); margin: 8px 2px; }
+    .sidebar-count {
+      margin-left: auto; font-size: 11px; background: var(--surface-2);
+      border: 1px solid var(--border); color: var(--text-subtle);
+      padding: 1px 6px; border-radius: 99px; min-width: 20px; text-align: center;
+    }
+    .sidebar-item.active .sidebar-count { background: var(--border); color: var(--text-muted); }
+
+    .content-area { padding: 28px 28px; background: var(--bg); }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .page-heading { margin-bottom: 20px; }
+    .page-heading h2 { font-size: 16px; font-weight: 600; color: var(--text); }
+    .page-heading p  { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+    .section-layout { display: grid; grid-template-columns: 360px 1fr; gap: 20px; align-items: start; }
+
+    .panel-header {
+      padding: 14px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .panel-header h3 { font-size: 13px; font-weight: 600; }
+    .panel-body { padding: 20px; }
+    .panel-form { display: flex; flex-direction: column; gap: 14px; }
+
+    .form-mode-banner {
+      display: none; padding: 8px 12px; margin-bottom: 14px;
+      background: rgba(56,139,253,.1); border: 1px solid rgba(56,139,253,.25);
+      border-radius: var(--radius); font-size: 12px; color: var(--blue-hover);
+    }
+    .form-mode-banner.visible { display: block; }
+
+    .rol-select {
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius);
+      color: var(--text); font-family: inherit; font-size: 14px; padding: 8px 12px; width: 100%;
+      outline: none; cursor: pointer;
+    }
+    .rol-select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(56,139,253,.15); }
+
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 500;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.15s;
+    }
+    .overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 24px; max-width: 360px; width: calc(100% - 40px); box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    .modal h3 { font-size: 14px; margin-bottom: 8px; }
+    .modal p  { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+    .rol-pill {
+      display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500;
+    }
+    .rol-ADMIN         { background: rgba(56,139,253,.15);  color: var(--blue-hover); }
+    .rol-RECEPCIONISTA { background: rgba(63,185,80,.12);   color: var(--green); }
+    .rol-VIGILANTE     { background: rgba(139,148,158,.12); color: var(--text-muted); }
+
+    .audit-action-badge {
+      font-size: 11px; font-weight: 500; padding: 2px 6px; border-radius: 4px;
+      background: var(--surface-2); color: var(--text-subtle); white-space: nowrap; border: 1px solid var(--border);
+    }
+    .audit-REGISTRAR_VISITANTE { background: rgba(63,185,80,.1);  color: var(--green);      border-color: rgba(63,185,80,.3); }
+    .audit-ELIMINAR_VISITANTE  { background: rgba(248,81,73,.1);  color: #ff7b72;           border-color: rgba(248,81,73,.3); }
+    .audit-SALIDA_VISITANTE    { background: rgba(210,153,34,.1); color: #d29922;           border-color: rgba(210,153,34,.3); }
+    .audit-ACTUALIZAR_VISITANTE{ background: rgba(56,139,253,.1); color: var(--blue-hover); border-color: rgba(56,139,253,.3); }
+    .audit-CREAR_USUARIO       { background: rgba(63,185,80,.1);  color: var(--green);      border-color: rgba(63,185,80,.3); }
+    .audit-ELIMINAR_USUARIO    { background: rgba(248,81,73,.1);  color: #ff7b72;           border-color: rgba(248,81,73,.3); }
+    .audit-ACTUALIZAR_USUARIO  { background: rgba(56,139,253,.1); color: var(--blue-hover); border-color: rgba(56,139,253,.3); }
+
+    @media (max-width: 900px) {
+      .admin-layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .section-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="toast-container" role="region" aria-live="polite"></div>
+
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-left">
+        <span class="header-title">Control de Visitantes <span>— Administración</span></span>
+        <span class="admin-badge">ADMIN</span>
+      </div>
+      <div class="header-right">
+        <span class="user-label" id="user-label"></span>
+        <a href="/recepcion.html" class="btn btn-secondary btn-sm">&#8592; Recepción</a>
+        <button id="logout-btn" class="btn btn-secondary btn-sm">Salir</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="admin-layout">
+    <nav class="sidebar" aria-label="Navegación del panel">
+      <div class="sidebar-section">Gestión</div>
+      <button class="sidebar-item active" data-view="usuarios">
+        <span class="sidebar-icon">&#128100;</span>
+        Usuarios
+        <span class="sidebar-count" id="badge-users">—</span>
+      </button>
+
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section">Seguridad</div>
+      <button class="sidebar-item" data-view="auditoria">
+        <span class="sidebar-icon">&#128203;</span>
+        Bitácora de actividad
+        <span class="sidebar-count" id="badge-audit">—</span>
+      </button>
+    </nav>
+
+    <div class="content-area">
+
+      <div id="view-usuarios" class="view active">
+        <div class="page-heading">
+          <h2>Usuarios del sistema</h2>
+          <p>Gestiona los usuarios que tienen acceso a la plataforma y sus roles asignados.</p>
+        </div>
+
+        <div class="section-layout">
+          <div class="card">
+            <div class="panel-header">
+              <h3 id="uform-title">Nuevo usuario</h3>
+              <button id="uform-cancel-btn" class="btn btn-secondary btn-sm hidden">Cancelar</button>
+            </div>
+            <div class="panel-body">
+              <div class="form-mode-banner" id="uform-banner">Editando usuario existente</div>
+              <form id="user-form" class="panel-form" novalidate autocomplete="off">
+                <input type="hidden" id="edit-id" value="" />
+                <div class="form-group">
+                  <label for="f-username">Nombre de usuario</label>
+                  <input id="f-username" type="text" placeholder="Ej. recepcion02" required maxlength="60" />
+                  <span class="field-error" id="f-username-error">Campo obligatorio</span>
+                </div>
+                <div class="form-group">
+                  <label for="f-nombre">Nombre completo</label>
+                  <input id="f-nombre" type="text" placeholder="Ej. María López" required maxlength="120" />
+                  <span class="field-error" id="f-nombre-error">Campo obligatorio</span>
+                </div>
+                <div class="form-group">
+                  <label for="f-password">
+                    Contraseña
+                    <span id="pass-hint" class="text-subtle" style="font-size:11px;margin-left:4px;"></span>
+                  </label>
+                  <input id="f-password" type="password" placeholder="••••••••" autocomplete="new-password" />
+                </div>
+                <div class="form-group">
+                  <label for="f-rol">Rol</label>
+                  <select id="f-rol" class="rol-select">
+                    <option value="RECEPCIONISTA">Recepcionista</option>
+                    <option value="VIGILANTE">Vigilante</option>
+                    <option value="ADMIN">Administrador</option>
+                  </select>
+                </div>
+                <button id="uform-submit-btn" type="submit" class="btn btn-primary btn-full">
+                  <span class="btn-text">Crear usuario</span>
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div class="card" style="overflow:hidden;">
+            <div class="panel-header">
+              <h3>Usuarios registrados</h3>
+              <button id="refresh-users-btn" class="btn btn-secondary btn-sm">Actualizar</button>
+            </div>
+            <div class="table-wrap">
+              <table aria-label="Lista de usuarios">
+                <thead>
+                  <tr><th>ID</th><th>Usuario</th><th>Nombre</th><th>Rol</th><th></th><th></th></tr>
+                </thead>
+                <tbody id="users-body">
+                  <tr><td colspan="6"><div class="empty-state">Cargando...</div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-auditoria" class="view">
+        <div class="page-heading">
+          <h2>Bitácora de actividad</h2>
+          <p>Registro histórico de todas las acciones realizadas en el sistema, ordenado de más reciente a más antiguo.</p>
+        </div>
+
+        <div class="card" style="overflow:hidden;">
+          <div class="panel-header">
+            <h3>Eventos registrados</h3>
+            <button id="refresh-audit-btn" class="btn btn-secondary btn-sm">Actualizar</button>
+          </div>
+          <div class="table-wrap">
+            <table aria-label="Bitácora de auditoría">
+              <thead>
+                <tr><th>ID</th><th>Usuario</th><th>Acción</th><th>Detalle</th><th>Fecha y hora</th></tr>
+              </thead>
+              <tbody id="audit-body">
+                <tr><td colspan="5"><div class="empty-state">Cargando...</div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="delete-overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="del-title">
+    <div class="modal">
+      <h3 id="del-title">Eliminar usuario</h3>
+      <p id="del-msg">¿Deseas eliminar este usuario? Esta acción no se puede deshacer.</p>
+      <div class="modal-actions">
+        <button id="del-cancel" class="btn btn-secondary">Cancelar</button>
+        <button id="del-confirm" class="btn btn-danger" style="padding:7px 16px;font-size:13px;">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    if (!localStorage.getItem('jwt_token') || getRole() !== 'ADMIN') {
+      window.location.replace('/recepcion.html');
+    }
+    document.getElementById('user-label').textContent = getUsername();
+
+    function esc(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+    function fmtDate(iso) {
+      if (!iso) return '—';
+      return new Date(iso).toLocaleString('es-MX', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    }
+
+    document.querySelectorAll('[data-view]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const view = btn.dataset.view;
+        document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('view-' + view).classList.add('active');
+        if (view === 'auditoria') loadAudit();
+      });
+    });
+
+    async function loadUsers() {
+      try {
+        const list = await Api.listarUsuarios();
+        renderUsers(list);
+        document.getElementById('badge-users').textContent = list.length;
+      } catch (err) {
+        if (err.status === 401 || err.status === 403) logout();
+        else showToast('Error cargando usuarios', 'error');
+      }
+    }
+
+    function renderUsers(list) {
+      const tbody = document.getElementById('users-body');
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Sin usuarios.</div></td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map(u => `
+        <tr>
+          <td><span class="badge badge-blue">${u.id}</span></td>
+          <td>${esc(u.username)}</td>
+          <td>${esc(u.nombreCompleto)}</td>
+          <td><span class="rol-pill rol-${esc(u.rol)}">${esc(u.rol)}</span></td>
+          <td><button class="btn btn-secondary btn-sm" onclick="startEdit(${u.id},'${esc(u.username)}','${esc(u.nombreCompleto)}','${esc(u.rol)}')">Editar</button></td>
+          <td><button class="btn btn-danger" onclick="openDeleteModal(${u.id},'${esc(u.username)}')">Eliminar</button></td>
+        </tr>`).join('');
+    }
+
+    async function loadAudit() {
+      try {
+        const list = await Api.listarAuditLogs();
+        renderAudit(list);
+        document.getElementById('badge-audit').textContent = list.length;
+      } catch (err) {
+        if (err.status === 401 || err.status === 403) logout();
+        else showToast('Error cargando bitácora', 'error');
+      }
+    }
+
+    function renderAudit(list) {
+      const tbody = document.getElementById('audit-body');
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">Sin registros.</div></td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map(log => `
+        <tr>
+          <td><span class="badge badge-blue">${log.id}</span></td>
+          <td>${esc(log.usuario)}</td>
+          <td><span class="audit-action-badge audit-${esc(log.accion)}">${esc(log.accion).replace(/_/g,' ')}</span></td>
+          <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(log.detalle)}">${esc(log.detalle)}</td>
+          <td class="text-subtle">${fmtDate(log.timestamp)}</td>
+        </tr>`).join('');
+    }
+
+    let editingId = null;
+    const userForm = document.getElementById('user-form');
+
+    window.startEdit = function(id, username, nombre, rol) {
+      editingId = id;
+      document.getElementById('edit-id').value = id;
+      document.getElementById('f-username').value = username;
+      document.getElementById('f-nombre').value = nombre;
+      document.getElementById('f-password').value = '';
+      document.getElementById('f-rol').value = rol;
+      document.getElementById('uform-title').textContent = 'Editar usuario #' + id;
+      document.getElementById('uform-submit-btn').querySelector('.btn-text').textContent = 'Guardar cambios';
+      document.getElementById('uform-cancel-btn').classList.remove('hidden');
+      document.getElementById('uform-banner').classList.add('visible');
+      document.getElementById('pass-hint').textContent = '— dejar vacío para no cambiar';
+      document.getElementById('f-username').focus();
+    };
+
+    document.getElementById('uform-cancel-btn').addEventListener('click', cancelEdit);
+    function cancelEdit() {
+      editingId = null;
+      userForm.reset();
+      document.getElementById('edit-id').value = '';
+      document.getElementById('uform-title').textContent = 'Nuevo usuario';
+      document.getElementById('uform-submit-btn').querySelector('.btn-text').textContent = 'Crear usuario';
+      document.getElementById('uform-cancel-btn').classList.add('hidden');
+      document.getElementById('uform-banner').classList.remove('visible');
+      document.getElementById('pass-hint').textContent = '';
+      ['f-username','f-nombre'].forEach(id => {
+        document.getElementById(id).classList.remove('error');
+        document.getElementById(id + '-error').classList.remove('visible');
+      });
+    }
+
+    ['f-username','f-nombre'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        document.getElementById(id).classList.remove('error');
+        document.getElementById(id + '-error').classList.remove('visible');
+      });
+    });
+
+    userForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('f-username');
+      const nombre   = document.getElementById('f-nombre');
+      const password = document.getElementById('f-password').value;
+      const rol      = document.getElementById('f-rol').value;
+      let ok = true;
+      if (!username.value.trim()) { username.classList.add('error'); document.getElementById('f-username-error').classList.add('visible'); ok = false; }
+      if (!nombre.value.trim())   { nombre.classList.add('error');   document.getElementById('f-nombre-error').classList.add('visible');   ok = false; }
+      if (!ok) return;
+
+      if (!editingId && !password) {
+        showToast('La contraseña es obligatoria al crear un usuario', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('uform-submit-btn');
+      btn.disabled = true;
+      btn.querySelector('.btn-text').textContent = 'Guardando...';
+      const payload = { username: username.value.trim(), nombreCompleto: nombre.value.trim(), rol };
+      if (password) payload.password = password;
+
+      try {
+        if (editingId) {
+          await Api.actualizarUsuario(editingId, payload);
+          showToast('Usuario actualizado', 'success');
+        } else {
+          await Api.crearUsuario(payload);
+          showToast('Usuario creado', 'success');
+        }
+        cancelEdit();
+        await loadUsers();
+      } catch (err) {
+        if (err.status === 401 || err.status === 403) { logout(); return; }
+        const msg = err.body?.error || (err.body?.detalle ? Object.values(err.body.detalle).join(', ') : 'Error al guardar');
+        showToast(msg, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.querySelector('.btn-text').textContent = editingId ? 'Guardar cambios' : 'Crear usuario';
+      }
+    });
+
+    let pendingDeleteId = null;
+    const overlay = document.getElementById('delete-overlay');
+
+    window.openDeleteModal = function(id, username) {
+      pendingDeleteId = id;
+      document.getElementById('del-msg').textContent = `¿Eliminar al usuario "${username}" (ID ${id})? No se puede deshacer.`;
+      overlay.classList.add('open');
+      document.getElementById('del-confirm').focus();
+    };
+    document.getElementById('del-cancel').onclick = () => { overlay.classList.remove('open'); pendingDeleteId = null; };
+    overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('open'); pendingDeleteId = null; } });
+    document.getElementById('del-confirm').addEventListener('click', async () => {
+      if (!pendingDeleteId) return;
+      const id = pendingDeleteId;
+      overlay.classList.remove('open');
+      try {
+        await Api.eliminarUsuario(id);
+        showToast('Usuario #' + id + ' eliminado', 'success');
+        if (editingId === id) cancelEdit();
+        await loadUsers();
+      } catch (err) {
+        if (err.status === 401 || err.status === 403) logout();
+        else showToast('Error al eliminar usuario', 'error');
+      } finally { pendingDeleteId = null; }
+    });
+
+    function logout() {
+      localStorage.removeItem('jwt_token');
+      localStorage.removeItem('user_rol');
+      localStorage.removeItem('username');
+      window.location.replace('/');
+    }
+    document.getElementById('logout-btn').addEventListener('click', logout);
+    document.getElementById('refresh-users-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('refresh-users-btn');
+      btn.disabled = true;
+      await loadUsers();
+      btn.disabled = false;
+    });
+    document.getElementById('refresh-audit-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('refresh-audit-btn');
+      btn.disabled = true;
+      await loadAudit();
+      btn.disabled = false;
+    });
+
+    loadUsers();
+  </script>
+</body>
+</html>

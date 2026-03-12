@@ -16,5 +16,11 @@ public class Usuario {
     private String username;
 
     @Column(nullable = false)
-    private String password; // Aquí guardaremos el hash de Bcrypt, NUNCA texto plano
+    private String password;
+
+    @Column(nullable = false)
+    private String nombreCompleto;
+
+    @Column(nullable = false)
+    private String rol = "RECEPCIONISTA";
 }

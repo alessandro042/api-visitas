@@ -31,13 +31,11 @@ public class Visitante {
     @Column(nullable = false, updatable = false)
     private LocalDateTime fechaRegistro;
 
-    /**
-     * JPA llama a este método automáticamente antes de persistir la entidad.
-     * Es más robusto que inicializar el campo directamente, ya que funciona
-     * correctamente en todos los escenarios del ciclo de vida de JPA.
-     */
+    @Column
+    private LocalDateTime fechaSalida;
+
     @PrePersist
     protected void onPrePersist() {
         this.fechaRegistro = LocalDateTime.now();
     }
-}
+}

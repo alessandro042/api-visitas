@@ -22,12 +22,19 @@ public class DataLoader implements CommandLineRunner {
     @Override
     public void run(String... args) {
         if (usuarioRepository.count() == 0) {
-            Usuario admin = new Usuario();
-            admin.setUsername("recepcion_admin");
-            admin.setPassword(passwordEncoder.encode("Cecyte2026*"));
-
-            usuarioRepository.save(admin);
-            log.info("Usuario de prueba creado: recepcion_admin");
+            crear("admin",          "Admin2026*",   "Administrador del Sistema", "ADMIN");
+            crear("recepcion_admin","Cecyte2026*",  "Recepcionista Principal",   "RECEPCIONISTA");
+            crear("vigilante01",    "Cecyte2026*",  "Vigilante Turno A",         "VIGILANTE");
+            log.info("Usuarios iniciales creados: admin, recepcion_admin, vigilante01");
         }
+    }
+
+    private void crear(String username, String password, String nombre, String rol) {
+        Usuario u = new Usuario();
+        u.setUsername(username);
+        u.setPassword(passwordEncoder.encode(password));
+        u.setNombreCompleto(nombre);
+        u.setRol(rol);
+        usuarioRepository.save(u);
     }
 }
